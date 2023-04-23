@@ -1,9 +1,8 @@
-from fastapi import FastApi, Depends, Query
+from fastapi import FastAPI, Depends, Query, Path
 import models
 from db import engine, SessionLocal
 import crud
 from sqlalchemy.orm import Session
-from typing import List, Optional
 
 def get_db():
     db = SessionLocal()
@@ -12,17 +11,36 @@ def get_db():
     finally:
         db.close()
 
-
 #create the database tables on app startup or reload
 models.Base.metadata.create_all(bind=engine)
 
-app = FastApi()
+description="""
+ToDo API will let you add and update tasks and their status.
+When creating a task only use the values To Do, Done or Deleted. 
+With these values ToDo API is able to get lists of everything that is 
+still to be done, already done or deleted. 
+
+WARNING: If you want to access your deleted items please update the status with the value Deleted.
+Using the delete_item method will completely remove the task and will no longer be retrievable. 
+"""
+
+app = FastAPI(
+    title="ToDo API",
+    description=description,
+    version=1.0
+)
+    
 
 #define endpoint for creating an item
 @app.post("/create_item")
-def create_item(description:str, status:Optional[List[str]] = Query(["To Do", "Done", "Deleted"]), db:Session = Depends(get_db)):
+def create_item(description:str, status:str | None = Query(description = "Only use values: To Do, Done or Deleted"), db:Session = Depends(get_db)):
     item = crud.create_item(db=db, description=description, status=status)
     return {"item": item}
+
+@app.get("/get_all")
+def get_all(db:Session = Depends(get_db)):
+    all_list = crud.get_all (db=db)
+    return all_list
 
 #define endpoint for getting to do items
 @app.get("/get_todo")
@@ -54,7 +72,7 @@ def update_description(id:int, description:str, db:Session = Depends(get_db)):
 
 #define endpoint for updating status of items
 @app.put("/update_status")
-def update_status(id:int, status:Optional[List[str]] = Query(["To Do", "Done", "Deleted"]), db:Session = Depends(get_db)):
+def update_status(id:int, status:str | None = Query(description = "Only use values: To Do, Done or Deleted"), db:Session = Depends(get_db)):
     item = crud.get_item(db=db, id=id)
     if item:
         updated_status_item = crud.update_status_item(db=db, id=id, status=status)
@@ -62,8 +80,6 @@ def update_status(id:int, status:Optional[List[str]] = Query(["To Do", "Done", "
     else:
         return {"error": f"Item with id {id} does not exist."}
 
-
-"""
 #define endpoint for completely removing item 
 @app.delete("/delete_item")
 def delete_item(id:int, db:Session = Depends(get_db)):
@@ -72,8 +88,3 @@ def delete_item(id:int, db:Session = Depends(get_db)):
         return crud.delete_item(db=db, id=id)
     else:
         return {"error": f"Item with id {id} does not exist."}
-
-""" 
-    
-
-

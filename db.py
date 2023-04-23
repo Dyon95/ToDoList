@@ -6,6 +6,6 @@ from sqlalchemy.orm import sessionmaker
 engine = create_engine("sqlite:///todolist_api.db")
 
 #create sessionmaker
-SessionLocal = sessionmaker(autocommit=False, autoflush= False, bind=engine)
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 Base = declarative_base()

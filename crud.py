@@ -1,15 +1,18 @@
 from sqlalchemy.orm import Session
-from .models import Items
-
-
+from models import Items
 
 #function to create a new item
-def create_item(db:Session, description, status):
+def create_item(db:Session, description, status:str):
     new_item = Items(description=description, status=status)
     db.add(new_item)
-    db.commit
+    db.commit()
     db.refresh(new_item)
     return new_item
+
+#function to retrieve all items
+def get_all(db:Session):
+    all_items = db.query(Items).all()
+    return all_items
 
 #function to retrieve all to do items
 def get_todo_items(db:Session):
@@ -35,7 +38,7 @@ def get_item(db:Session, id:int):
 def update_item_description(db:Session, id: int, description: str):
     item = get_item(db=db, id=id)
     item.description = description
-    db.commit
+    db.commit()
     db.refresh(item)
     return item
 
@@ -43,7 +46,7 @@ def update_item_description(db:Session, id: int, description: str):
 def update_status_item(db:Session, id:int, status: str):
     item = get_item(db=db, id=id)
     item.status = status
-    db.commit
+    db.commit()
     db.refresh(item)
     return item
 
@@ -51,4 +54,4 @@ def update_status_item(db:Session, id:int, status: str):
 def delete_item(db:Session, id:int):
     item = get_item(db=db, id=id)
     db.delete(item)
-    db.commit 
+    db.commit()
