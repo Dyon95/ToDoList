@@ -48,7 +48,7 @@ def update_status_item(db:Session, id:int, status: str):
     return item
 
 #function to delete item
-def delete_item(db:Session, id:int)
+def delete_item(db:Session, id:int):
     item = get_item(db=db, id=id)
     db.delete(item)
     db.commit 
